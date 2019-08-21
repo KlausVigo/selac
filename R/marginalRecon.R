@@ -181,7 +181,7 @@ GetMarginalGene <- function(pars, codon.data, phy, codon.freq.by.aa=NULL, codon.
                 root.p_array <- codon.freq.by.gene
             }
             
-            phy.sort <- reorder(phy, "pruningwise")
+            phy.sort <- reorder(phy, "postorder")
             
             diag(nuc.mutation.rates) = 0
             nuc.mutation.rates = t(nuc.mutation.rates * root.p_array)
@@ -211,7 +211,7 @@ GetMarginalGene <- function(pars, codon.data, phy, codon.freq.by.aa=NULL, codon.
             scale.factor <- -sum(diag(nuc.mutation.rates) * root.p_array)
             for (i in sequence(nsites)) {
                 
-                phy.sort <- reorder(phy, "pruningwise")
+                phy.sort <- reorder(phy, "postorder")
                 
                 marginal.recon_array[,,i] <- GetMarginalSingleSite(charnum=i, codon.data=codon.data, phy=phy.sort, Q=nuc.mutation.rates, root.p=root.p_array, taxon.to.drop=taxon.to.drop)
             }
@@ -307,7 +307,7 @@ GetMarginalGene <- function(pars, codon.data, phy, codon.freq.by.aa=NULL, codon.
                     }
                     
                     #Put the na.rm=TRUE bit here just in case -- when the amino acid is a stop codon, there is a bunch of NaNs. Should be fixed now.
-                    phy <- reorder(phy, "pruningwise")
+                    phy <- reorder(phy, "postorder")
                     
                     #Generate matrix of root frequencies for each optimal AA:
                     root.p_array <- matrix(codon.freq.by.aa, nrow=dim(Q_codon_array)[2], ncol=21)
@@ -315,7 +315,7 @@ GetMarginalGene <- function(pars, codon.data, phy, codon.freq.by.aa=NULL, codon.
                     root.p_array <- root.p_array / rowSums(root.p_array)
                     rownames(root.p_array) <- .unique.aa
                     
-                    phy.sort <- reorder(phy, "pruningwise")
+                    phy.sort <- reorder(phy, "postorder")
                     
                     marginal.recon_ncats_array[,,k.cat] <- GetMarginalSingleSite(charnum=i, codon.data=codon.data, phy=phy.sort, Q=Q_codon_array[,,aa.optim_array[i]], root.p=root.p_array[aa.optim_array[i],], taxon.to.drop=taxon.to.drop) * weights.k
                 }
@@ -341,14 +341,14 @@ GetMarginalGene <- function(pars, codon.data, phy, codon.freq.by.aa=NULL, codon.
             
             #Put the na.rm=TRUE bit here just in case -- when the amino acid is a stop codon, there is a bunch of NaNs. Should be fixed now.
             #scale.factor <- -sum(Q_codon_array[DiagArray(dim(Q_codon_array))] * equilibrium.codon.freq, na.rm=TRUE)
-            phy <- reorder(phy, "pruningwise")
+            phy <- reorder(phy, "postorder")
             
             #Generate matrix of root frequencies for each optimal AA:
             root.p_array <- matrix(codon.freq.by.aa, nrow=dim(Q_codon_array)[2], ncol=21)
             root.p_array <- t(root.p_array)
             root.p_array <- root.p_array / rowSums(root.p_array)
             rownames(root.p_array) <- .unique.aa
-            phy.sort <- reorder(phy, "pruningwise")
+            phy.sort <- reorder(phy, "postorder")
             
             for (i in sequence(nsites)) {
                 marginal.recon_array[,,i] <- GetMarginalSingleSite(charnum=i, codon.data=codon.data, phy=phy.sort, Q=Q_codon_array[,,aa.optim_array[i]], root.p=root.p_array[aa.optim_array[i],], taxon.to.drop=taxon.to.drop)

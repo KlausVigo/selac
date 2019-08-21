@@ -673,7 +673,7 @@ GetIntervalSequencesAllSites <- function(model.to.reconstruct.under, model.to.si
             }
 
             #Put the na.rm=TRUE bit here just in case -- when the amino acid is a stop codon, there is a bunch of NaNs. Should be fixed now.
-            phy.sort <- reorder(phy, "pruningwise")
+            phy.sort <- reorder(phy, "postorder")
 
             #Generate matrix of root frequencies for each optimal AA:
             root.p_array <- matrix(codon.freq.by.aa, nrow=dim(Q_codon_array)[2], ncol=21)
@@ -744,14 +744,14 @@ GetIntervalSequencesAllSites <- function(model.to.reconstruct.under, model.to.si
 
             #Put the na.rm=TRUE bit here just in case -- when the amino acid is a stop codon, there is a bunch of NaNs. Should be fixed now.
             #scale.factor <- -sum(Q_codon_array[DiagArray(dim(Q_codon_array))] * equilibrium.codon.freq, na.rm=TRUE)
-            phy <- reorder(phy, "pruningwise")
+            phy <- reorder(phy, "postorder")
 
             #Generate matrix of root frequencies for each optimal AA:
             root.p_array <- matrix(codon.freq.by.aa, nrow=dim(Q_codon_array)[2], ncol=21)
             root.p_array <- t(root.p_array)
             root.p_array <- root.p_array / rowSums(root.p_array)
             rownames(root.p_array) <- .unique.aa
-            phy.sort <- reorder(phy, "pruningwise")
+            phy.sort <- reorder(phy, "postorder")
 
             if(model.to.simulate.under == "selac"){
                 simulation.model.info <- GetSelacSimulateInfo(selac.obj=selac.obj2, partition.number=partition.number)
@@ -832,7 +832,7 @@ GetIntervalSequencesAllSites <- function(model.to.reconstruct.under, model.to.si
                 root.p_array <- codon.freq.by.gene
             }
 
-            phy.sort <- reorder(phy, "pruningwise")
+            phy.sort <- reorder(phy, "postorder")
 
             diag(nuc.mutation.rates) = 0
             nuc.mutation.rates = t(nuc.mutation.rates * root.p_array)

@@ -148,7 +148,7 @@ GetLikelihoodUCEForManyCharVaryingBySite <- function(nuc.data, phy, nuc.mutation
     }else{
         ploidy = 1
     }
-    phy <- reorder(phy, "pruningwise")
+    phy <- reorder(phy, "postorder")
     diag(nuc.mutation.rates) = 0
     diag(nuc.mutation.rates) <- -rowSums(nuc.mutation.rates)
     scale.factor <- -sum(diag(nuc.mutation.rates) * root.p_array)
@@ -453,7 +453,7 @@ GetLikelihoodHMMUCEForManyCharVaryingBySite <- function(nuc.data, phy, nuc.mutat
     }else{
         ploidy = 1
     }
-    phy <- reorder(phy, "pruningwise")
+    phy <- reorder(phy, "postorder")
     diag(nuc.mutation.rates) = 0
     diag(nuc.mutation.rates) <- -rowSums(nuc.mutation.rates)
     scale.factor <- -sum(diag(nuc.mutation.rates) * root.p_array)
@@ -835,7 +835,7 @@ GetBranchLikeAcrossAllSites <- function(p, edge.number, phy, data.array, pars.ar
         phy$edge.length[which(phy$edge[,2]==edge.number)] <- p
     }
     
-    phy <- reorder(phy, "pruningwise")
+    phy <- reorder(phy, "postorder")
     nb.tip <- length(phy$tip.label)
     nb.node <- phy$Nnode
 
@@ -901,7 +901,7 @@ GetBranchLikeAcrossAllSitesGTR <- function(p, edge.number, phy, data.array, pars
         phy$edge.length[which(phy$edge[,2]==edge.number)] <- p
     }
     
-    phy <- reorder(phy, "pruningwise")
+    phy <- reorder(phy, "postorder")
     nb.tip <- length(phy$tip.label)
     nb.node <- phy$Nnode
     

@@ -1200,7 +1200,7 @@ GetLikelihoodSAC_CodonForManyCharVaryingBySiteEvolvingAA <- function(codon.data,
     #root.p_array <- t(root.p_array)
     #root.p_array <- root.p_array / rowSums(root.p_array)
     #rownames(root.p_array) <- .unique.aa
-    phy.sort <- reorder(phy, "pruningwise")
+    phy.sort <- reorder(phy, "postorder")
     # Q_codon_array_vectored <- c(t(Q_codon_array)) # has to be transposed
     # Q_codon_array_vectored <- Q_codon_array_vectored[.non_zero_pos]
     
@@ -1301,7 +1301,7 @@ GetLikelihoodSAC_CodonForManyCharVaryingBySite <- function(codon.data, phy, Q_co
     
     #Put the na.rm=TRUE bit here just in case -- when the amino acid is a stop codon, there is a bunch of NaNs. Should be fixed now.
     #scale.factor <- -sum(Q_codon_array[DiagArray(dim(Q_codon_array))] * equilibrium.codon.freq, na.rm=TRUE)
-    phy <- reorder(phy, "pruningwise")
+    phy <- reorder(phy, "postorder")
     
     ## This is obviously not very elegant, but not sure how else to code it to store this stuff in this way -- WORK IN PROGRESS:
     tempGetAAExpQt <- local({
@@ -1349,7 +1349,7 @@ GetLikelihoodSAC_CodonForManyCharVaryingBySite <- function(codon.data, phy, Q_co
     root.p_array <- root.p_array / rowSums(root.p_array)
     rownames(root.p_array) <- .unique.aa
     
-    phy.sort <- reorder(phy, "pruningwise")
+    phy.sort <- reorder(phy, "postorder")
     anc.indices <- unique(phy.sort$edge[,1])
     MultiCoreLikelihoodBySite <- function(i){
         tmp <- GetLikelihoodSAC_CodonForSingleCharGivenOptimum(charnum=i, codon.data=codon.data$unique.site.patterns, phy=phy.sort, Q_codon=expQt[[aa.optim_array[i]]], root.p=root.p_array[aa.optim_array[i],], scale.factor=scale.factor, anc.indices=anc.indices, return.all=FALSE)
@@ -1374,7 +1374,7 @@ GetLikelihoodMutSel_CodonForManyCharVaryingBySite <- function(codon.data, phy, r
     scale.factor <- -sum(diag(Q_codon) * root.p_array, na.rm=TRUE)
     expQt <- GetExpQt(phy=phy, Q=Q_codon, scale.factor=scale.factor, rates=NULL)
     
-    phy.sort <- reorder(phy, "pruningwise")
+    phy.sort <- reorder(phy, "postorder")
     anc.indices <- unique(phy.sort$edge[,1])
     
     MultiCoreLikelihoodBySite <- function(nsite.index){
@@ -1399,7 +1399,7 @@ GetLikelihoodNucleotideForManyCharVaryingBySite <- function(nuc.data, phy, nuc.m
     diag(nuc.mutation.rates) = -rowSums(nuc.mutation.rates)
     scale.factor <- -sum(diag(nuc.mutation.rates) * root.p_array)
     expQt <- GetExpQt(phy=phy, Q=nuc.mutation.rates, scale.factor=scale.factor, rates=rates.k)
-    phy.sort <- reorder(phy, "pruningwise")
+    phy.sort <- reorder(phy, "postorder")
     anc.indices <- unique(phy.sort$edge[,1])
     
     MultiCoreLikelihoodBySite <- function(nsite.index){
@@ -1573,7 +1573,7 @@ GetLikelihoodSAC_CodonForManyCharGivenAllParams <- function(x, codon.data, phy, 
     alpha <- x[2]
     beta <- x[3]
     gamma <- volume.fixed.value
-    
+    browser()
     if(k.levels > 0){
         if(nuc.model == "JC") {
             base.freqs=c(x[4:6], 1-sum(x[4:6]))
@@ -1659,6 +1659,7 @@ GetLikelihoodSAC_CodonForManyCharGivenAllParams <- function(x, codon.data, phy, 
             aa.distances <- CreateAADistanceMatrix(alpha=alpha, beta=beta, gamma=gamma, aa.properties=aa.properties, normalize=FALSE, poly.params=NULL, k=k.levels)
         }
         Q_codon_array <- FastCreateAllCodonFixationProbabilityMatrices(aa.distances=aa.distances, nsites=nsites, C=C, Phi=Phi, q=q, Ne=Ne, include.stop.codon=TRUE, numcode=numcode, diploid=diploid, flee.stop.codon.rate=0.9999999)
+        browser()
         final.likelihood = GetLikelihoodSAC_CodonForManyCharVaryingBySite(codon.data, phy, Q_codon_array, codon.freq.by.aa=codon.freq.by.aa, codon.freq.by.gene=codon.freq.by.gene, aa.optim_array=aa.optim_array, codon_mutation_matrix=codon_mutation_matrix, Ne=Ne, rates=NULL, numcode=numcode, diploid=diploid, n.cores.by.gene.by.site=n.cores.by.gene.by.site)
         likelihood <- sum(final.likelihood * codon.data$site.pattern.counts)
     }
@@ -1779,6 +1780,7 @@ GetLikelihoodGY94_YN98_CodonForManyCharGivenAllParams <- function(x, codon.data,
     }else{
         Q_codon = CreateCodonMutationMatrixYN98(x=x, codon.freqs=codon.freqs, numcode=numcode)
     }
+    browser()
     final.likelihood <- GetLikelihoodMutSel_CodonForManyCharVaryingBySite(codon.data, phy, root.p_array=codon.freqs, Q_codon=Q_codon, numcode=numcode, n.cores.by.gene.by.site=n.cores.by.gene.by.site)
     likelihood <- sum(final.likelihood * codon.data$site.pattern.counts)
     
@@ -3880,7 +3882,7 @@ GetExpQt <- function(phy, Q, scale.factor, rates=NULL){
     expQt <- as.list(numeric(nb.tip + nb.node))
     TIPS <- 1:nb.tip
     comp <- numeric(nb.tip + nb.node)
-    #phy <- reorder(phy, "pruningwise")
+    #phy <- reorder(phy, "postorder")
     #Obtain an object of all the unique ancestors
     anc <- unique(phy$edge[,1])
     desRows <- do.call(c,lapply(anc,
@@ -3911,7 +3913,7 @@ GetExpQt <- function(phy, Q, scale.factor, rates=NULL){
 #    expQt <- as.list(numeric(nb.tip + nb.node))
 #    TIPS <- 1:nb.tip
 #    comp <- numeric(nb.tip + nb.node)
-#phy <- reorder(phy, "pruningwise")
+#phy <- reorder(phy, "postorder")
 #Obtain an object of all the unique ancestors
 #    anc <- unique(phy$edge[,1])
 #    edge.idx <- rep(NA, length(phy$edge[,1]))
