@@ -3897,6 +3897,29 @@ GetExpQt <- function(phy, Q, scale.factor, rates=NULL){
 }
 
 
+GetExpQt_new <- function(phy, Q, scale.factor, rates=NULL){
+    if(!is.null(scale.factor)){
+        Q.scaled = Q * (1/scale.factor)
+    }else{
+        Q.scaled = Q
+    }
+    if(!is.null(rates)){
+        Q.scaled = Q.scaled * rates
+    }
+    eig <- eigen(Q, FALSE)
+    if(mode(eig$values) == "complex"){ 
+        expQt <-  internal_expmt(Q.scaled,phy$edge.length)
+        .complex <<- .complex + 1   
+    }    
+    else{
+        eig$invers <- solve(eig$vectors)
+        expQt <- vector("list", length(phy$edge.length))
+        for(i in seq_along(phy$edge.length)) expQt[[i]] <- eig$vectors %*% (exp(eig$values * phy$edge.length[i])  * eig$invers)
+        .not_complex <<- .not_complex + 1  
+    }
+    return(expQt)
+}
+
 #GetExpQtParallel <- function(phy, Q, scale.factor, rates=NULL, ncores = 1){
 #
 #    if(!is.null(scale.factor)){
@@ -3936,6 +3959,67 @@ GetExpQt <- function(phy, Q, scale.factor, rates=NULL){
 
 
 #Step 2: Finish likelihood by taking our already exponentiated Q down the tree and simply re-traverse the tree and multiply by the observed likelihood.
+FinishLikelihoodCalculation_new <- function(phy, liks, Q, root.p, anc){
+    
+    nb.tip <- length(phy$tip.label)
+    nb.node <- phy$Nnode
+    TIPS <- 1:nb.tip
+    comp <- numeric(nb.tip + nb.node)
+    if(any(root.p < 0) | any(is.na(root.p))){
+        return(1000000)
+    }
+    focal <- 0
+    
+    #Obtain an object of all the unique ancestors
+    for (i  in seq_along(phy$edge.length)) {
+        #the ancestral node at row i is called focal
+        desRows <- phy$edge[i, 1]
+        desNodes <- phy$edge[i, 2]
+        #Get descendant information of focal
+#        desRows <- which(phy$edge[,1]==focal)
+#        desNodes <- phy$edge[desRows,2]
+#        v <- 1 
+#       for (desIndex in desNodes){
+        if(focal == desRows){
+            if(desNodes <= nb.tip){
+#                if(sum(liks[desIndex,]) < 2){
+                    v <- v * (Q[[i]] %*% liks[i,])
+#                }
+            }else{
+                v <- v * (Q[[i]] %*% liks[i,])
+            }
+        }
+        else{
+            if(focal >0){
+              comp[focal] <- sum(v)
+              liks[focal,] <- v/comp[focal]
+            }  
+            if(desNodes <= nb.tip){
+#                if(sum(liks[desIndex,]) < 2){
+                    v <- (Q[[i]] %*% liks[i,])
+#                }
+            }else{
+                v <- (Q[[i]] %*% liks[i,])
+            }
+        } 
+        focal <- desRows
+    }
+    comp[focal] <- sum(v)
+    liks[focal,] <- v/comp[focal]
+    #Specifies the root:
+    root <- nb.tip + 1L
+    #If any of the logs have NAs restart search:
+    if(is.nan(sum(log(comp[-TIPS]))) || is.na(sum(log(comp[-TIPS])))){
+        return(1000000)
+    }
+    else{
+        loglik <- -(sum(log(comp[-TIPS])) + log(sum(root.p * liks[root,])))
+        if(is.infinite(loglik)){return(1000000)}
+    }
+    loglik
+}
+
+
 FinishLikelihoodCalculation <- function(phy, liks, Q, root.p, anc){
     
     nb.tip <- length(phy$tip.label)
